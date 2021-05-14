@@ -6,6 +6,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     matrix: [],
+    Q_VALUES: [],
     pathObject: {
       color: "#7ef2ac",
       type: "PATH",
@@ -18,10 +19,19 @@ export default new Vuex.Store({
       prize: -100,
       id: 2,
     },
+    rewardObject: {
+      color: "#1793ff",
+      type: "REWARD",
+      prize: 100,
+      id: 3,
+    },
   },
   getters: {
     getMatrix(state) {
       return state.matrix;
+    },
+    getQValues(state) {
+      return state.Q_VALUES;
     },
   },
   mutations: {
@@ -42,13 +52,32 @@ export default new Vuex.Store({
     toPath(state, v) {
       console.log("To Path called");
       const { i, j } = v;
-      //state.matrix[i][j] = state.pathObject;
-      Vue.set(state.matrix[i], j, state.pathObject);
+      state.matrix[i][j] = state.pathObject;
+    },
+    toWall(state, v) {
+      const { i, j } = v;
+      state.matrix[i][j] = state.wallObject;
+    },
+    updateQValues(state, v) {
+      state.Q_VALUES = v;
+    },
+    toReward(state, v) {
+      const { i, j } = v;
+      state.matrix[i][j] = state.rewardObject;
     },
   },
   actions: {
     actionToPath({ commit }, data) {
       commit("toPath", data);
+    },
+    actionToWall({ commit }, data) {
+      commit("toWall", data);
+    },
+    actionUpdateQ({ commit }, data) {
+      commit("updateQValues", data);
+    },
+    actionToReward({ commit }, data) {
+      commit("toReward", data);
     },
   },
   modules: {},

@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="columns">
-      <div class="column is-2 pl-6">
-        <div class="fixed-form">
+      <div style="background-color: #fafafa" class="column is-3 py-6 px-6">
+        <div class="column">
           <h1>Tools</h1>
           <div class="field">
             <label class="label">Grid Row/Col</label>
@@ -16,22 +16,20 @@
             </div>
           </div>
           <div class="field">
-            <b-field label="Simple">
-              <b-select v-model="boxTypeModel" placeholder="Select a name">
-                <option
-                  v-for="option in selectType"
-                  :value="option.id"
-                  :key="option.id"
-                >
-                  {{ option.type }}
-                </option>
-              </b-select>
-            </b-field>
+            <b-button type="is-link">Save</b-button>
           </div>
-          <b-button type="is-primary">Primary</b-button>
+          <div class="field">
+            <router-link
+              :to="{
+                name: 'TrainPage',
+                params: { gridRowCol, matrixData: getMatrix },
+              }"
+              ><b-button type="is-success">Train Page</b-button></router-link
+            >
+          </div>
         </div>
       </div>
-      <div class="column">
+      <div class="column py-6">
         <div v-if="!renderGrid">EMPTY</div>
         <div v-else class="container grid-container">
           <div
@@ -47,8 +45,10 @@
               v-for="(mItem, j) in item"
               :key.sync="j"
               @click="gridItemClicked(i, j)"
+              @dblclick="setPrize(i, j)"
             >
               <span class="tag is-light">{{ mItem.prize }}</span>
+              <span class="tag is-warning">{{ mItem.type }}</span>
             </div>
           </div>
         </div>
@@ -60,20 +60,9 @@
 <script>
 import store from "../store";
 import { mapGetters } from "vuex";
-import SingleGrid from "../components/SingleGrid";
 export default {
-  components: {
-    /*eslint-disable*/
-    SingleGrid,
-  },
   data() {
     return {
-      selectType: [
-        { type: "PATH", id: 1 },
-        { type: "WALL", id: 2 },
-        { type: "DESTINATION", id: 3 },
-      ],
-      boxTypeModel: 1,
       gridRowCol: 5,
       pathObject: {
         color: "#7ef2ac",
@@ -95,13 +84,8 @@ export default {
     ...mapGetters(["getMatrix"]),
   },
   created() {
-    for (let i = 0; i < this.gridRowCol; i++) {
-      this.matrixModel[i] = new Array(this.gridRowCol);
-      for (let j = 0; j < this.gridRowCol; j++) {
-        this.matrixModel[i][j] = this.wallObject;
-      }
-    }
-    store.commit("update", this.matrixModel);
+    store.commit("createMatrix", this.gridRowCol);
+    //store.commit("update", this.matrixModel);
     store.subscribe(this.subscribtion);
     this.renderGrid = true;
   },
@@ -115,18 +99,26 @@ export default {
   },
   methods: {
     subscribtion: function (mutation) {
-      const { type, payload } = mutation;
+      const { type } = mutation;
       console.log("Mutation", mutation);
-      if (type === "toPath") {
-        this.renderGrid = true;
-        //this.matrixModel = payload; //?????????
+      if (type === "toPath" || type === "toWall" || type === "toReward") {
+        this.renderGrid = true; //???????
         console.log("MATRIX MODEL:", this.matrixModel);
       }
     },
     gridItemClicked: function (i, j) {
-      //store.commit("toPath", { i, j });
+      console.log(this.getMatrix[i][j]);
+      const { id } = this.getMatrix[i][j];
       this.renderGrid = false;
-      store.dispatch("actionToPath", { i, j });
+      if (id === 2) {
+        store.dispatch("actionToPath", { i, j });
+      } else {
+        store.dispatch("actionToWall", { i, j });
+      }
+    },
+    setPrize: function (i, j) {
+      this.renderGrid = false;
+      store.dispatch("actionToReward", { i, j });
     },
   },
 };
