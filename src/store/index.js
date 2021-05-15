@@ -65,6 +65,12 @@ export default new Vuex.Store({
       const { i, j } = v;
       state.matrix[i][j] = state.rewardObject;
     },
+    mutatePrizeValues(state, data) {
+      const { wallPrize, pathPrize, rewardPrize } = data;
+      state.wallObject.prize = wallPrize;
+      state.pathObject.prize = pathPrize;
+      state.rewardObject.prize = rewardPrize;
+    },
   },
   actions: {
     actionToPath({ commit }, data) {
@@ -78,6 +84,12 @@ export default new Vuex.Store({
     },
     actionToReward({ commit }, data) {
       commit("toReward", data);
+    },
+    actionSetSetPrizes({ commit }, data) {
+      commit("mutatePrizeValues", data);
+    },
+    actionCreateMatrix({ commit }, data) {
+      commit("createMatrix", data);
     },
   },
   modules: {},

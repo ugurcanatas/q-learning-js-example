@@ -16,14 +16,42 @@
             </div>
           </div>
           <div class="field">
-            <b-button type="is-link">Save</b-button>
+            <label class="label">Wall Prize Value</label>
+            <div class="control">
+              <b-numberinput
+                v-model="wallPrizeModel"
+                type="is-warning"
+                step="10"
+              ></b-numberinput>
+            </div>
           </div>
           <div class="field">
-            <router-link
-              :to="{
-                name: 'TrainPage',
-                params: { gridRowCol, matrixData: getMatrix },
-              }"
+            <label class="label">Path Prize Value</label>
+            <div class="control">
+              <b-numberinput
+                v-model="pathPrizeModel"
+                type="is-info"
+                step="10"
+              ></b-numberinput>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">Destination Prize Value</label>
+            <div class="control">
+              <b-numberinput
+                v-model="destPrizeModel"
+                type="is-success"
+                step="10"
+              ></b-numberinput>
+            </div>
+          </div>
+          <div class="field">
+            <b-button @click="createFromOptions" type="is-link"
+              >Create From Options</b-button
+            >
+          </div>
+          <div class="field">
+            <router-link to="/train-page"
               ><b-button type="is-success">Train Page</b-button></router-link
             >
           </div>
@@ -63,6 +91,9 @@ import { mapGetters } from "vuex";
 export default {
   data() {
     return {
+      wallPrizeModel: -100,
+      pathPrizeModel: -1,
+      destPrizeModel: 100,
       gridRowCol: 5,
       pathObject: {
         color: "#7ef2ac",
@@ -93,9 +124,9 @@ export default {
     getMatrix: function (v) {
       console.log("V Update", v);
     },
-    gridRowCol: function (v) {
-      store.commit("createMatrix", v);
-    },
+    // gridRowCol: function (v) {
+    //   store.commit("createMatrix", v);
+    // },
   },
   methods: {
     subscribtion: function (mutation) {
@@ -106,6 +137,7 @@ export default {
         console.log("MATRIX MODEL:", this.matrixModel);
       }
     },
+    //click
     gridItemClicked: function (i, j) {
       console.log(this.getMatrix[i][j]);
       const { id } = this.getMatrix[i][j];
@@ -116,9 +148,18 @@ export default {
         store.dispatch("actionToWall", { i, j });
       }
     },
+    //dbl click
     setPrize: function (i, j) {
       this.renderGrid = false;
       store.dispatch("actionToReward", { i, j });
+    },
+    createFromOptions: function () {
+      store.dispatch("actionSetSetPrizes", {
+        wallPrize: this.wallPrizeModel,
+        pathPrize: this.pathPrizeModel,
+        rewardPrize: this.destPrizeModel,
+      });
+      store.dispatch("actionCreateMatrix", this.gridRowCol);
     },
   },
 };
