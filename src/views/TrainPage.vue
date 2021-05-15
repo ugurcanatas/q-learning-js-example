@@ -1,10 +1,22 @@
 <template>
-  <div class="columns py-6 px-6">
-    <div class="column is-3">
-      {{ getQValues }}
+  <div class="columns">
+    <div class="column is-3 py-6 px-6">
+      <div class="field">
+        <span>Episode: {{ episodeText }}</span>
+      </div>
+      <div style="height: 2px; background-color: black" class="my-4"></div>
       <b-field label="Loop Count">
         <b-numberinput v-model="loopCount" step="100" min="500" max="2000">
         </b-numberinput>
+      </b-field>
+      <b-field label="Loop Delay (ms)">
+        <b-slider
+          type="is-info"
+          v-model="loopTimerValue"
+          :step="100"
+          :max="2000"
+          :min="1"
+        ></b-slider>
       </b-field>
       <b-field label="γ value">
         <b-numberinput
@@ -19,15 +31,34 @@
       </b-field>
       <div class="field">
         <b-button
-          @click="startTraining"
+          class="mb-3"
+          @click="startWorker"
           :loading="isTrainingStarted"
           type="is-link"
           >Start Training</b-button
+        >
+        <b-button
+          @click="stopWorker"
+          :disabled="!isTrainingStarted"
+          type="is-danger"
+          >Stop Training</b-button
         >
       </div>
       <div class="field">
         <b-button @click="resetQMatrix" type="is-danger"
           >Reset Q Matrix</b-button
+        >
+      </div>
+      <div class="field">
+        <router-link to="/"
+          ><b-button type="is-success">Matrix Page</b-button></router-link
+        >
+      </div>
+      <div class="field">
+        <router-link to="/shotest-path"
+          ><b-button type="is-success"
+            >Shortest Path Page</b-button
+          ></router-link
         >
       </div>
     </div>
@@ -55,6 +86,8 @@ import { mapGetters } from "vuex";
 export default {
   data() {
     return {
+      episodeText: 0,
+      loopTimerValue: 1000,
       isTrainingStarted: false,
       epsilonModel: 0.9,
       loopCount: 1000,
@@ -143,12 +176,26 @@ export default {
       }
       return [new_row_index, new_col_index];
     },
-    startTraining: function () {
+    stopWorker: function () {
+      this.isTrainingStarted = false;
+    },
+    startWorker: function () {
       this.isTrainingStarted = true;
+      //console.log(this.loopTimerValue);
+      //setTimeout(this.startTraining(), 10);
+      this.startTraining();
+    },
+    timer: function (ms) {
+      return new Promise((res) => setTimeout(res, ms));
+    },
+    startTraining: async function () {
       const discountFactor = 0.9;
       const learningRate = 0.9;
 
       for (let i = 0; i < this.loopCount; i++) {
+        if (!this.isTrainingStarted) {
+          break;
+        }
         let [rowIndex, colIndex] = this.getStartLocation();
 
         while (!this.isTerminalState(rowIndex, colIndex)) {
@@ -179,7 +226,11 @@ export default {
             oldQValue;
           let newQValue = learningRate * tempDiff + oldQValue;
           this.Q_VALUES[oldRow][oldCol][actionIndex] = newQValue;
+          await this.timer(this.loopTimerValue);
+          //console.log("New Q Value", newQValue);
         }
+        //console.log("Episode: ", i);
+        this.episodeText = i;
       }
       console.log("Training Done !", this.Q_VALUES);
       this.isTrainingStarted = false;

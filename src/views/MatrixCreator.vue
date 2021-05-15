@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="columns">
+    <div class="columns" style="height: 100vh">
       <div style="background-color: #fafafa" class="column is-3 py-6 px-6">
         <div class="column">
-          <h1>Tools</h1>
+          <h1 class="is-size-3 mb-4">Options</h1>
           <div class="field">
             <label class="label">Grid Row/Col</label>
             <div class="control">
@@ -57,19 +57,19 @@
           </div>
         </div>
       </div>
-      <div class="column py-6">
+      <div class="column py-6 grid-container">
         <div v-if="!renderGrid">EMPTY</div>
-        <div v-else class="container grid-container">
+        <div v-else class="container">
           <div
-            class="gridRow px-6 mb-4"
+            class="gridRow px-6"
             v-for="(item, i) in getMatrix"
             :key.sync="i"
           >
             <div
-              :style="`transform: translateX(${
-                j * 100 + 12 * j
-              }px); background-color: ${mItem.color};`"
-              class="singleGridItem box"
+              :style="`transform: translateX(${j * 100}px); background-color: ${
+                mItem.color
+              };`"
+              class="singleGridItem box no-radius"
               v-for="(mItem, j) in item"
               :key.sync="j"
               @click="gridItemClicked(i, j)"
@@ -183,5 +183,11 @@ export default {
 
 .grid-container {
   overflow-x: scroll;
+  height: 100%;
+}
+
+.no-radius {
+  border-radius: 0px !important;
+  border: 1px solid whitesmoke;
 }
 </style>

@@ -2,6 +2,7 @@ import Vue from "vue";
 import VueRouter from "vue-router";
 import MatrixCreator from "../views/MatrixCreator.vue";
 import TrainPage from "../views/TrainPage.vue";
+import ShortestPathPage from "../views/ShortestPathPage.vue";
 
 Vue.use(VueRouter);
 
@@ -14,10 +15,12 @@ const routes = [
   {
     path: "/train-page",
     name: "TrainPage",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     component: TrainPage,
+  },
+  {
+    path: "/shotest-path",
+    name: "ShortestPathPage",
+    component: ShortestPathPage,
   },
 ];
 
