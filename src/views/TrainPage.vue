@@ -1,21 +1,21 @@
 <template>
-  <div class="columns">
+  <div class="columns" style="height: 100vh">
     <div class="column is-3 py-6 px-6">
       <div class="field">
         <span>Episode: {{ episodeText }}</span>
       </div>
       <div style="height: 2px; background-color: black" class="my-4"></div>
       <b-field label="Loop Count">
-        <b-numberinput v-model="loopCount" step="100" min="500" max="2000">
+        <b-numberinput v-model="loopCount" :step="100" :min="500" :max="5000">
         </b-numberinput>
       </b-field>
       <b-field label="Loop Delay (ms)">
         <b-slider
           type="is-info"
           v-model="loopTimerValue"
-          :step="100"
+          :step="1"
           :max="2000"
-          :min="1"
+          :min="0"
         ></b-slider>
       </b-field>
       <b-field label="γ value">
@@ -62,18 +62,20 @@
         >
       </div>
     </div>
-    <div class="column">
-      <div class="gridRow px-6" v-for="(item, i) in getMatrix" :key.sync="i">
-        <div
-          :style="`transform: translateX(${j * 100}px); background-color: ${
-            mItem.color
-          };`"
-          class="singleGridItem box no-radius"
-          v-for="(mItem, j) in item"
-          :key.sync="j"
-        >
-          <span class="tag is-light">{{ mItem.prize }}</span>
-          <span class="tag is-warning">{{ mItem.type }}</span>
+    <div class="column grid-container">
+      <div class="container">
+        <div class="gridRow px-6" v-for="(item, i) in getMatrix" :key.sync="i">
+          <div
+            :style="`transform: translateX(${j * 100}px); background-color: ${
+              mItem.color
+            };`"
+            class="singleGridItem box no-radius"
+            v-for="(mItem, j) in item"
+            :key.sync="j"
+          >
+            <span class="tag is-light">{{ mItem.prize }}</span>
+            <span class="tag is-warning">{{ mItem.type }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -83,11 +85,20 @@
 <script>
 import store from "../store";
 import { mapGetters } from "vuex";
+/*eslint-disable */
+import {
+  getNextAction,
+  getNextLocation,
+  getStartLocation,
+  invokeStoreValues,
+  isTerminalState,
+  //argMax,
+} from "../helpers";
 export default {
   data() {
     return {
       episodeText: 0,
-      loopTimerValue: 1000,
+      loopTimerValue: 0,
       isTrainingStarted: false,
       epsilonModel: 0.9,
       loopCount: 1000,
@@ -129,7 +140,10 @@ export default {
     //Check if state is terminal or not.
     //This means that if you hit the wall then it's terminal state
     isTerminalState: function (row_index, col_index) {
-      if (this.getMatrix[row_index][col_index].prize === -1) {
+      /**
+       * TODO: Change prize value dynamically
+       */
+      if (this.getMatrix[row_index][col_index].prize === 3) {
         return false;
       } else {
         return true;
@@ -181,6 +195,7 @@ export default {
     },
     startWorker: function () {
       this.isTrainingStarted = true;
+      //console.log("Matrix Array", this.getMatrix);
       //console.log(this.loopTimerValue);
       //setTimeout(this.startTraining(), 10);
       this.startTraining();
@@ -188,7 +203,10 @@ export default {
     timer: function (ms) {
       return new Promise((res) => setTimeout(res, ms));
     },
+    /*eslint-disable */
     startTraining: async function () {
+      //Invoke latest vuex store values for training.
+      invokeStoreValues();
       const discountFactor = 0.9;
       const learningRate = 0.9;
 
@@ -196,21 +214,17 @@ export default {
         if (!this.isTrainingStarted) {
           break;
         }
-        let [rowIndex, colIndex] = this.getStartLocation();
+        let [rowIndex, colIndex] = getStartLocation();
 
-        while (!this.isTerminalState(rowIndex, colIndex)) {
-          let actionIndex = this.getNextAction(
+        while (!isTerminalState(rowIndex, colIndex)) {
+          let actionIndex = getNextAction(
             rowIndex,
             colIndex,
             this.epsilonModel
           );
           let oldRow = rowIndex;
           let oldCol = colIndex;
-          let nextLocation = this.getNextLocation(
-            rowIndex,
-            colIndex,
-            actionIndex
-          );
+          let nextLocation = getNextLocation(rowIndex, colIndex, actionIndex);
           rowIndex = nextLocation[0];
           colIndex = nextLocation[1];
 
@@ -225,11 +239,14 @@ export default {
             discountFactor * Math.max(...this.Q_VALUES[rowIndex][colIndex]) -
             oldQValue;
           let newQValue = learningRate * tempDiff + oldQValue;
+          // let newQValue =
+          //   reward +
+          //   discountFactor * Math.max(...this.Q_VALUES[rowIndex][colIndex]);
           this.Q_VALUES[oldRow][oldCol][actionIndex] = newQValue;
+
           await this.timer(this.loopTimerValue);
           //console.log("New Q Value", newQValue);
         }
-        //console.log("Episode: ", i);
         this.episodeText = i;
       }
       console.log("Training Done !", this.Q_VALUES);
@@ -246,5 +263,9 @@ export default {
 <style>
 .no-radius {
   border-radius: 0px !important;
+}
+.grid-container {
+  overflow-x: scroll;
+  height: 100%;
 }
 </style>

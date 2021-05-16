@@ -21,7 +21,7 @@
               <b-numberinput
                 v-model="wallPrizeModel"
                 type="is-warning"
-                step="10"
+                :step="10"
               ></b-numberinput>
             </div>
           </div>
@@ -31,7 +31,7 @@
               <b-numberinput
                 v-model="pathPrizeModel"
                 type="is-info"
-                step="10"
+                :step="10"
               ></b-numberinput>
             </div>
           </div>
@@ -41,7 +41,7 @@
               <b-numberinput
                 v-model="destPrizeModel"
                 type="is-success"
-                step="10"
+                :step="10"
               ></b-numberinput>
             </div>
           </div>
@@ -155,11 +155,11 @@ export default {
     },
     createFromOptions: function () {
       store.dispatch("actionSetSetPrizes", {
-        wallPrize: this.wallPrizeModel,
-        pathPrize: this.pathPrizeModel,
-        rewardPrize: this.destPrizeModel,
+        wallPrize: Number(this.wallPrizeModel),
+        pathPrize: Number(this.pathPrizeModel),
+        rewardPrize: Number(this.destPrizeModel),
       });
-      store.dispatch("actionCreateMatrix", this.gridRowCol);
+      store.dispatch("actionCreateMatrix", Number(this.gridRowCol));
     },
   },
 };

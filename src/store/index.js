@@ -8,22 +8,25 @@ export default new Vuex.Store({
     matrix: [],
     Q_VALUES: [],
     pathObject: {
-      color: "#7ef2ac",
+      color: "#e0e0e0",
       type: "PATH",
       prize: -1,
       id: 1,
+      traveling: false,
     },
     wallObject: {
-      color: "#1f2252",
+      color: "#1c1c1c",
       type: "WALL",
       prize: -100,
       id: 2,
+      traveling: false,
     },
     rewardObject: {
       color: "#1793ff",
       type: "REWARD",
       prize: 100,
       id: 3,
+      traveling: false,
     },
   },
   getters: {
@@ -32,6 +35,15 @@ export default new Vuex.Store({
     },
     getQValues(state) {
       return state.Q_VALUES;
+    },
+    getMatrixDimen(state) {
+      return state.matrix.length;
+    },
+    getWallPrize(state) {
+      return state.wallObject.prize;
+    },
+    getPathPrize(state) {
+      return state.pathObject.prize;
     },
   },
   mutations: {
