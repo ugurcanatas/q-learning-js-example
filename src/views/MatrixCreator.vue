@@ -95,18 +95,6 @@ export default {
       pathPrizeModel: -1,
       destPrizeModel: 100,
       gridRowCol: 5,
-      pathObject: {
-        color: "#7ef2ac",
-        type: "PATH",
-        prize: -1,
-        id: 1,
-      },
-      wallObject: {
-        color: "#1f2252",
-        type: "WALL",
-        prize: -100,
-        id: 2,
-      },
       matrixModel: [],
       renderGrid: false,
     };

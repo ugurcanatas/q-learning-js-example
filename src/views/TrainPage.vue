@@ -2,10 +2,14 @@
   <div class="columns" style="height: 100vh">
     <div class="column is-3 py-6 px-6">
       <div class="field">
-        <span>Episode: {{ episodeText }}</span>
+        <p class="is-size-4 pb-2">Preview</p>
+        <b-tag type="is-info" size="is-medium"
+          >Episode: {{ episodeText }}</b-tag
+        >
       </div>
       <div style="height: 2px; background-color: black" class="my-4"></div>
-      <b-field label="Loop Count">
+      <p class="is-size-4 pb-2">Options</p>
+      <b-field label="Episode Count">
         <b-numberinput v-model="loopCount" :step="100" :min="500" :max="5000">
         </b-numberinput>
       </b-field>
@@ -103,12 +107,11 @@ export default {
       epsilonModel: 0.9,
       loopCount: 1000,
       Q_VALUES: [],
-      actions: ["UP", "RIGHT", "DOWN", "LEFT"],
     };
   },
   computed: {
     //get last state
-    ...mapGetters(["getMatrix", "getQValues"]),
+    ...mapGetters(["getMatrix", "getQValues", "getActions"]),
   },
   created() {
     //create new Q_VALUES array
@@ -123,81 +126,78 @@ export default {
       for (let i = 0; i < DIMEN; i++) {
         this.Q_VALUES[i] = new Array(DIMEN);
         for (let j = 0; j < DIMEN; j++) {
-          this.Q_VALUES[i][j] = new Array(this.actions.length);
-          for (let k = 0; k < this.actions.length; k++) {
+          this.Q_VALUES[i][j] = new Array(this.getActions.length);
+          for (let k = 0; k < this.getActions.length; k++) {
             this.Q_VALUES[i][j][k] = 0;
           }
         }
       }
       store.dispatch("actionUpdateQ", this.Q_VALUES);
     },
-    //Find index of max value item in an array
-    argMax: function (array) {
-      return array
-        .map((x, i) => [x, i])
-        .reduce((r, a) => (a[0] > r[0] ? a : r))[1];
-    },
-    //Check if state is terminal or not.
-    //This means that if you hit the wall then it's terminal state
-    isTerminalState: function (row_index, col_index) {
-      /**
-       * TODO: Change prize value dynamically
-       */
-      if (this.getMatrix[row_index][col_index].prize === 3) {
-        return false;
-      } else {
-        return true;
-      }
-    },
-    getStartLocation: function () {
-      //pick start row & col index
-      let current_row = Math.floor(Math.random() * this.getMatrix.length);
-      let current_col = Math.floor(Math.random() * this.getMatrix.length);
-      //Pick a location until we find a correct one
-      while (this.isTerminalState(current_row, current_col)) {
-        current_row = Math.floor(Math.random() * this.getMatrix.length);
-        current_col = Math.floor(Math.random() * this.getMatrix.length);
-      }
-      return [current_row, current_col];
-    },
-    //Robot picks a new action
-    getNextAction: function (row_index, col_index, epsilon) {
-      if (Math.random() < epsilon) {
-        return this.argMax(this.Q_VALUES[row_index][col_index]);
-      } else {
-        return Math.floor(Math.random() * 4);
-      }
-    },
-    //Select which way robot is goin to go
-    getNextLocation: function (row_index, col_index, action_index) {
-      let new_row_index = row_index;
-      let new_col_index = col_index;
+    // //Find index of max value item in an array
+    // argMax: function (array) {
+    //   return array
+    //     .map((x, i) => [x, i])
+    //     .reduce((r, a) => (a[0] > r[0] ? a : r))[1];
+    // },
+    // //Check if state is terminal or not.
+    // //This means that if you hit the wall then it's terminal state
+    // isTerminalState: function (row_index, col_index) {
+    //   /**
+    //    * TODO: Change prize value dynamically
+    //    */
+    //   if (this.getMatrix[row_index][col_index].prize === 3) {
+    //     return false;
+    //   } else {
+    //     return true;
+    //   }
+    // },
+    // getStartLocation: function () {
+    //   //pick start row & col index
+    //   let current_row = Math.floor(Math.random() * this.getMatrix.length);
+    //   let current_col = Math.floor(Math.random() * this.getMatrix.length);
+    //   //Pick a location until we find a correct one
+    //   while (this.isTerminalState(current_row, current_col)) {
+    //     current_row = Math.floor(Math.random() * this.getMatrix.length);
+    //     current_col = Math.floor(Math.random() * this.getMatrix.length);
+    //   }
+    //   return [current_row, current_col];
+    // },
+    // //Robot picks a new action
+    // getNextAction: function (row_index, col_index, epsilon) {
+    //   if (Math.random() < epsilon) {
+    //     return this.argMax(this.Q_VALUES[row_index][col_index]);
+    //   } else {
+    //     return Math.floor(Math.random() * 4);
+    //   }
+    // },
+    // //Select which way robot is goin to go
+    // getNextLocation: function (row_index, col_index, action_index) {
+    //   let new_row_index = row_index;
+    //   let new_col_index = col_index;
 
-      if (this.actions[action_index] === "UP" && row_index > 0) {
-        new_row_index -= 1;
-      } else if (
-        this.actions[action_index] === "RIGHT" &&
-        col_index < this.getMatrix.length - 1
-      ) {
-        new_col_index += 1;
-      } else if (
-        this.actions[action_index] === "DOWN" &&
-        row_index < this.getMatrix.length - 1
-      ) {
-        new_row_index += 1;
-      } else if (this.actions[action_index] === "LEFT" && col_index > 0) {
-        new_col_index -= 1;
-      }
-      return [new_row_index, new_col_index];
-    },
+    //   if (this.actions[action_index] === "UP" && row_index > 0) {
+    //     new_row_index -= 1;
+    //   } else if (
+    //     this.actions[action_index] === "RIGHT" &&
+    //     col_index < this.getMatrix.length - 1
+    //   ) {
+    //     new_col_index += 1;
+    //   } else if (
+    //     this.actions[action_index] === "DOWN" &&
+    //     row_index < this.getMatrix.length - 1
+    //   ) {
+    //     new_row_index += 1;
+    //   } else if (this.actions[action_index] === "LEFT" && col_index > 0) {
+    //     new_col_index -= 1;
+    //   }
+    //   return [new_row_index, new_col_index];
+    // },
     stopWorker: function () {
       this.isTrainingStarted = false;
     },
     startWorker: function () {
       this.isTrainingStarted = true;
-      //console.log("Matrix Array", this.getMatrix);
-      //console.log(this.loopTimerValue);
-      //setTimeout(this.startTraining(), 10);
       this.startTraining();
     },
     timer: function (ms) {

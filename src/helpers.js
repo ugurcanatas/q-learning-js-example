@@ -1,16 +1,17 @@
 import store from "./store";
-const actions = ["UP", "RIGHT", "DOWN", "LEFT"];
 
 let Q_VALUES = store.getters["getQValues"];
 let MATRIX = store.getters["getMatrix"];
 let DIMEN = store.getters["getMatrixDimen"];
 let PATH_PRIZE = store.getters["getPathPrize"];
+let ACTIONS = store.getters["getActions"];
 
 const invokeStoreValues = () => {
   Q_VALUES = store.getters["getQValues"];
   MATRIX = store.getters["getMatrix"];
   DIMEN = store.getters["getMatrixDimen"];
   PATH_PRIZE = store.getters["getPathPrize"];
+  ACTIONS = store.getters["getActions"];
 };
 
 console.log("Getters", store.getters);
@@ -36,21 +37,45 @@ const getNextAction = (row, col, epsilon) => {
   if (Math.random() < epsilon) {
     return argMax(Q_VALUES[row][col]);
   } else {
-    return Math.floor(Math.random() * 4);
+    return Math.floor(Math.random() * ACTIONS.length);
   }
 };
 
 const getNextLocation = (row, col, action_index) => {
   let new_row_index = row;
   let new_col_index = col;
-  if (actions[action_index] === "UP" && row > 0) {
+  if (ACTIONS[action_index] === "UP" && row > 0) {
     new_row_index -= 1;
-  } else if (actions[action_index] === "RIGHT" && col < DIMEN - 1) {
+  } else if (ACTIONS[action_index] === "RIGHT" && col < DIMEN - 1) {
     new_col_index += 1;
-  } else if (actions[action_index] === "DOWN" && row < DIMEN - 1) {
+  } else if (ACTIONS[action_index] === "DOWN" && row < DIMEN - 1) {
     new_row_index += 1;
-  } else if (actions[action_index] === "LEFT" && col > 0) {
+  } else if (ACTIONS[action_index] === "LEFT" && col > 0) {
     new_col_index -= 1;
+  } else if (ACTIONS[action_index] === "UP-LEFT" && col > 0 && row > 0) {
+    new_col_index -= 1;
+    new_row_index -= 1;
+  } else if (
+    ACTIONS[action_index] === "UP-RIGHT" &&
+    col < DIMEN - 1 &&
+    row > 0
+  ) {
+    new_col_index += 1;
+    new_row_index -= 1;
+  } else if (
+    ACTIONS[action_index] === "DOWN-LEFT" &&
+    col > 0 &&
+    row < DIMEN - 1
+  ) {
+    new_col_index -= 1;
+    new_row_index += 1;
+  } else if (
+    ACTIONS[action_index] === "DOWN-RIGHT" &&
+    col < DIMEN - 1 &&
+    row < DIMEN - 1
+  ) {
+    new_col_index += 1;
+    new_row_index += 1;
   }
   return [new_row_index, new_col_index];
 };

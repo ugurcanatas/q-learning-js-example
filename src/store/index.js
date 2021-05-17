@@ -7,6 +7,16 @@ export default new Vuex.Store({
   state: {
     matrix: [],
     Q_VALUES: [],
+    actions: [
+      "UP",
+      "RIGHT",
+      "DOWN",
+      "LEFT",
+      "UP-RIGHT",
+      "UP-LEFT",
+      "DOWN-RIGHT",
+      "DOWN-LEFT",
+    ],
     pathObject: {
       color: "#e0e0e0",
       type: "PATH",
@@ -44,6 +54,9 @@ export default new Vuex.Store({
     },
     getPathPrize(state) {
       return state.pathObject.prize;
+    },
+    getActions(state) {
+      return state.actions;
     },
   },
   mutations: {
