@@ -2,6 +2,15 @@
   <div class="columns" style="height: 100vh">
     <div class="column is-3 py-6 px-6">
       <div class="field">
+        <b-field label="Scale">
+          <b-select @input="scaleDiv" placeholder="Select a scale">
+            <option v-for="item in scales" :value="item.value" :key="item.text">
+              {{ item.text }}
+            </option>
+          </b-select>
+        </b-field>
+      </div>
+      <div class="field">
         <p class="mb-4">Current Start Point</p>
         <b-tag type="is-primary is-light" size="is-large" class="mb-4"
           >(row,col):({{ defRow }},{{ defCol }})</b-tag
@@ -54,20 +63,24 @@
             ratio="16by9"
           ></b-image>
         </div>
-        <div class="gridRow px-6" v-for="(item, i) in getMatrix" :key.sync="i">
+        <div
+          class="gridRow px-6"
+          v-for="(item, i) in getMatrix"
+          :key.sync="i"
+          :style="`height: ${boxDimen}px;`"
+        >
           <div
-            :style="`transform: translateX(${j * 100}px); background-color: ${
-              mItem.color
-            };`"
-            class="singleGridItem box no-radius"
             :id="`box-${i}-${j}`"
+            @click="selectStartPoint(i, j)"
+            :style="`transform: translateX(${
+              j * boxDimen
+            }px); background-color: ${
+              mItem.color
+            }; height: ${boxDimen}px; width: ${boxDimen}px;`"
+            class="singleGridItem box no-radius"
             v-for="(mItem, j) in item"
             :key.sync="j"
-            @click="selectStartPoint(i, j)"
-          >
-            <span class="tag is-light">{{ mItem.prize }}</span>
-            <span class="tag is-warning">{{ mItem.type }}</span>
-          </div>
+          ></div>
         </div>
       </div>
     </div>
@@ -80,13 +93,31 @@ import { pickNextAction, isTerminalState, pickNextLocation } from "../helpers";
 export default {
   data() {
     return {
+      scales: [
+        {
+          text: "25px",
+          value: 25,
+        },
+        {
+          text: "50px",
+          value: 50,
+        },
+        {
+          text: "100px",
+          value: 100,
+        },
+      ],
+      boxDimen: 50,
       playbackDelay: 1000,
       isRunning: false,
       isRobotVisible: false,
-      transformRobot: "transform: translate(0,0);",
+      transformRobot: {
+        transform: "translate(0,0)",
+        height: "50px",
+        width: "50px",
+      },
       defRow: 0,
       defCol: 0,
-      rerender: true,
       matrixData: [],
       shortest_path: [],
       shortest_path_matrix: [],
@@ -109,7 +140,12 @@ export default {
       this.defRow = i;
       this.defCol = j;
       this.isRobotVisible = true;
-      this.transformRobot = `transform:translate(${j * 100}px,${i * 100}px);`;
+      this.transformRobot.transform = `translate(${j * this.boxDimen}px,${
+        i * this.boxDimen
+      }px)`;
+      this.transformRobot.height = `${this.boxDimen}px`;
+      this.transformRobot.width = `${this.boxDimen}px`;
+      console.log("Transform Robot", this.transformRobot);
     },
     randomLocation: function () {
       this.resetClasses();
@@ -123,9 +159,11 @@ export default {
       this.defRow = current_row_index;
       this.defCol = current_col_index;
       this.isRobotVisible = true;
-      this.transformRobot = `transform:translate(${current_col_index * 100}px,${
-        current_row_index * 100
-      }px);`;
+      this.transformRobot.transform = `translate(${
+        current_col_index * this.boxDimen
+      }px,${current_row_index * this.boxDimen}px)`;
+      this.transformRobot.height = `${this.boxDimen}px`;
+      this.transformRobot.width = `${this.boxDimen}px`;
     },
     timer: function (ms) {
       return new Promise((res) => setTimeout(res, ms));
@@ -164,9 +202,11 @@ export default {
           // console.log("Next Location", indexes);
           curr_row = indexes[0];
           curr_col = indexes[1];
-          this.transformRobot = `transform:translate(${curr_col * 100}px,${
-            curr_row * 100
-          }px);`;
+          this.transformRobot.transform = `translate(${
+            curr_col * this.boxDimen
+          }px,${curr_row * this.boxDimen}px)`;
+          this.transformRobot.height = `${this.boxDimen}px`;
+          this.transformRobot.width = `${this.boxDimen}px`;
           const d = document.getElementById(`box-${curr_row}-${curr_col}`);
           d.classList.add("bgClass");
           this.shortest_path.push(indexes);
@@ -174,6 +214,9 @@ export default {
         }
       }
       this.isRunning = false;
+    },
+    scaleDiv: function (v) {
+      this.boxDimen = v;
     },
   },
 };
@@ -194,8 +237,6 @@ export default {
   padding: 0 !important;
   transition: 0.2s ease-in-out;
   top: 0;
-  height: 100px;
-  width: 100px;
   position: absolute;
   cursor: pointer;
   z-index: 99 !important;
