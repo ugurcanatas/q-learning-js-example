@@ -76,7 +76,7 @@
 
 <script>
 import { mapGetters } from "vuex";
-import { getNextAction, isTerminalState, getNextLocation } from "../helpers";
+import { pickNextAction, isTerminalState, pickNextLocation } from "../helpers";
 export default {
   data() {
     return {
@@ -145,7 +145,6 @@ export default {
       this.isRunning = true;
       this.resetClasses();
       const d = document.getElementById(`box-${this.defRow}-${this.defCol}`);
-      console.log("Element", d);
       d.classList.add("bgClass");
       //Y,X şeklinde olmalı
       if (isTerminalState(this.defRow, this.defCol)) {
@@ -159,17 +158,16 @@ export default {
           if (!this.isRunning) {
             break;
           }
-          let action_index = getNextAction(curr_row, curr_col, 1);
-          let indexes = getNextLocation(curr_row, curr_col, action_index);
-          console.log("Action Index", action_index);
-          console.log("Next Location", indexes);
+          let action_index = pickNextAction(curr_row, curr_col, 1);
+          let indexes = pickNextLocation(curr_row, curr_col, action_index);
+          // console.log("Action Index", action_index);
+          // console.log("Next Location", indexes);
           curr_row = indexes[0];
           curr_col = indexes[1];
           this.transformRobot = `transform:translate(${curr_col * 100}px,${
             curr_row * 100
           }px);`;
           const d = document.getElementById(`box-${curr_row}-${curr_col}`);
-          console.log("Element", d);
           d.classList.add("bgClass");
           this.shortest_path.push(indexes);
           await this.timer(this.playbackDelay);

@@ -5,6 +5,29 @@
         <div class="column">
           <h1 class="is-size-3 mb-4">Options</h1>
           <div class="field">
+            <b-field label="Scale">
+              <b-select @input="scaleDiv" placeholder="Select a scale">
+                <option
+                  v-for="item in scales"
+                  :value="item.value"
+                  :key="item.text"
+                  selected="50px"
+                >
+                  {{ item.text }}
+                </option>
+              </b-select>
+            </b-field>
+          </div>
+          <div class="field">
+            <b-field label="File">
+              <b-select @input="selectFile" placeholder="Select a file">
+                <option v-for="item in files" :value="item.json" :key="item.id">
+                  {{ item.filename }}
+                </option>
+              </b-select>
+            </b-field>
+          </div>
+          <div class="field">
             <label class="label">Grid Row/Col</label>
             <div class="control">
               <input
@@ -55,28 +78,50 @@
               ><b-button type="is-success">Train Page</b-button></router-link
             >
           </div>
+          <div style="height: 2px; background-color: black" class="my-4"></div>
+          <div class="field">
+            <p class="is-size-5">Hovered Element</p>
+          </div>
+          <div class="field">
+            <b-tag class="tag-wall" type="is-info" size="is-large"
+              >Type: WALL, Prize: {{ getWallPrize }}</b-tag
+            >
+          </div>
+          <div class="field">
+            <b-tag class="tag-path" size="is-large"
+              >Type: PATH, Prize: {{ getPathPrize }}</b-tag
+            >
+          </div>
+          <div class="field">
+            <b-tag class="tag-reward" type="is-info" size="is-large"
+              >Type: REWARD, Prize: {{ getRewardPrize }}</b-tag
+            >
+          </div>
         </div>
       </div>
       <div class="column py-6 grid-container">
         <div v-if="!renderGrid">EMPTY</div>
-        <div v-else class="container">
+        <div v-else class="container" id="container-grid">
           <div
             class="gridRow px-6"
             v-for="(item, i) in getMatrix"
             :key.sync="i"
+            :style="`height: ${boxDimen}px;`"
           >
             <div
-              :style="`transform: translateX(${j * 100}px); background-color: ${
+              :style="`transform: translateX(${
+                j * boxDimen
+              }px); background-color: ${
                 mItem.color
-              };`"
+              }; height: ${boxDimen}px; width: ${boxDimen}px;`"
               class="singleGridItem box no-radius"
               v-for="(mItem, j) in item"
               :key.sync="j"
               @click="gridItemClicked(i, j)"
               @dblclick="setPrize(i, j)"
             >
-              <span class="tag is-light">{{ mItem.prize }}</span>
-              <span class="tag is-warning">{{ mItem.type }}</span>
+              <!-- <span class="tag is-light">{{ mItem.prize }}</span>
+              <span class="tag is-warning">{{ mItem.type }}</span> -->
             </div>
           </div>
         </div>
@@ -91,6 +136,29 @@ import { mapGetters } from "vuex";
 export default {
   data() {
     return {
+      boxDimen: 50,
+      hoveredElement: {},
+      scales: [
+        {
+          text: "25px",
+          value: 25,
+        },
+        {
+          text: "50px",
+          value: 50,
+        },
+        {
+          text: "100px",
+          value: 100,
+        },
+      ],
+      files: [
+        {
+          id: 1,
+          filename: "Matrix 1",
+          json: require("../assets/matrix1.json"),
+        },
+      ],
       wallPrizeModel: -100,
       pathPrizeModel: -1,
       destPrizeModel: 100,
@@ -100,7 +168,12 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["getMatrix"]),
+    ...mapGetters([
+      "getMatrix",
+      "getWallPrize",
+      "getPathPrize",
+      "getRewardPrize",
+    ]),
   },
   created() {
     store.commit("createMatrix", this.gridRowCol);
@@ -149,20 +222,22 @@ export default {
       });
       store.dispatch("actionCreateMatrix", Number(this.gridRowCol));
     },
+    selectFile: function (json) {
+      console.log("File", json);
+      store.dispatch("actionCreateFromJSON", json);
+    },
+    scaleDiv: function (v) {
+      this.boxDimen = v;
+    },
   },
 };
 </script>
 
 <style>
 .singleGridItem {
-  height: 100px;
-  width: 100px;
   position: absolute;
   cursor: pointer;
-}
-
-.gridRow {
-  height: 100px;
+  padding: 0 !important;
 }
 
 .fixed-form {
@@ -177,5 +252,17 @@ export default {
 .no-radius {
   border-radius: 0px !important;
   border: 1px solid whitesmoke;
+}
+
+.tag-wall {
+  background-color: rgb(28, 28, 28) !important ;
+}
+
+.tag-path {
+  background-color: rgb(224, 224, 224) !important;
+}
+
+.tag-reward {
+  background-color: rgb(23, 147, 255) !important;
 }
 </style>

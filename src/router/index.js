@@ -3,6 +3,7 @@ import VueRouter from "vue-router";
 import MatrixCreator from "../views/MatrixCreator.vue";
 import TrainPage from "../views/TrainPage.vue";
 import ShortestPathPage from "../views/ShortestPathPage.vue";
+import ChartReward from "../views/ChartReward.vue";
 
 Vue.use(VueRouter);
 
@@ -18,9 +19,15 @@ const routes = [
     component: TrainPage,
   },
   {
-    path: "/shotest-path",
+    path: "/shortest-path",
     name: "ShortestPathPage",
     component: ShortestPathPage,
+  },
+  {
+    path: "/chart",
+    name: "ChartReward",
+    component: ChartReward,
+    props: true,
   },
 ];
 

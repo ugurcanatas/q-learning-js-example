@@ -9,8 +9,17 @@
       </div>
       <div style="height: 2px; background-color: black" class="my-4"></div>
       <p class="is-size-4 pb-2">Options</p>
+      <div class="field">
+        <b-field label="Scale">
+          <b-select @input="scaleDiv" placeholder="Select a scale">
+            <option v-for="item in scales" :value="item.value" :key="item.text">
+              {{ item.text }}
+            </option>
+          </b-select>
+        </b-field>
+      </div>
       <b-field label="Episode Count">
-        <b-numberinput v-model="loopCount" :step="100" :min="500" :max="5000">
+        <b-numberinput v-model="loopCount" :step="100" :min="500" :max="100000">
         </b-numberinput>
       </b-field>
       <b-field label="Loop Delay (ms)">
@@ -59,27 +68,53 @@
         >
       </div>
       <div class="field">
-        <router-link to="/shotest-path"
+        <router-link to="/shortest-path"
           ><b-button type="is-success"
             >Shortest Path Page</b-button
+          ></router-link
+        >
+      </div>
+      <div class="field">
+        <router-link
+          :to="{
+            name: 'ChartReward',
+            params: { data: chartDataAvg, scales: scalesAvg },
+          }"
+          ><b-button type="is-success"
+            >Reward/Episode chart</b-button
+          ></router-link
+        >
+      </div>
+      <div class="field">
+        <router-link
+          :to="{
+            name: 'ChartReward',
+            params: { data: chartDataActions, scales: scalesActions },
+          }"
+          ><b-button type="is-success"
+            >Actions/Episode chart</b-button
           ></router-link
         >
       </div>
     </div>
     <div class="column grid-container">
       <div class="container">
-        <div class="gridRow px-6" v-for="(item, i) in getMatrix" :key.sync="i">
+        <div
+          class="gridRow px-6"
+          v-for="(item, i) in getMatrix"
+          :key.sync="i"
+          :style="`height: ${boxDimen}px;`"
+        >
           <div
-            :style="`transform: translateX(${j * 100}px); background-color: ${
+            :style="`transform: translateX(${
+              j * boxDimen
+            }px); background-color: ${
               mItem.color
-            };`"
+            }; height: ${boxDimen}px; width: ${boxDimen}px;`"
             class="singleGridItem box no-radius"
             v-for="(mItem, j) in item"
             :key.sync="j"
-          >
-            <span class="tag is-light">{{ mItem.prize }}</span>
-            <span class="tag is-warning">{{ mItem.type }}</span>
-          </div>
+          ></div>
         </div>
       </div>
     </div>
@@ -87,26 +122,125 @@
 </template>
 
 <script>
+import ChartReward from "./ChartReward";
 import store from "../store";
 import { mapGetters } from "vuex";
 /*eslint-disable */
 import {
-  getNextAction,
-  getNextLocation,
-  getStartLocation,
+  pickNextAction,
+  pickNextLocation,
+  pickStartLocation,
   invokeStoreValues,
   isTerminalState,
   //argMax,
 } from "../helpers";
 export default {
+  components: {
+    ChartReward,
+  },
   data() {
     return {
+      scales: [
+        {
+          text: "25px",
+          value: 25,
+        },
+        {
+          text: "50px",
+          value: 50,
+        },
+        {
+          text: "100px",
+          value: 100,
+        },
+      ],
+      boxDimen: 50,
       episodeText: 0,
       loopTimerValue: 0,
       isTrainingStarted: false,
       epsilonModel: 0.9,
       loopCount: 1000,
       Q_VALUES: [],
+      scalesAvg: {
+        yAxes: [
+          {
+            scaleLabel: {
+              display: true,
+              labelString: "Avarage Reward",
+              fontSize: 24,
+            },
+          },
+        ],
+        xAxes: [
+          {
+            scaleLabel: {
+              display: true,
+              labelString: "Episodes #",
+              fontSize: 24,
+            },
+          },
+        ],
+      },
+      scalesActions: {
+        yAxes: [
+          {
+            scaleLabel: {
+              display: true,
+              labelString: "Avarage Actions Taken",
+              fontSize: 24,
+            },
+          },
+        ],
+        xAxes: [
+          {
+            scaleLabel: {
+              display: true,
+              labelString: "Episodes #",
+              fontSize: 24,
+            },
+          },
+        ],
+      },
+      chartDataAvg: {
+        labels: [],
+        datasets: [
+          {
+            label: "Graph, Average Reward / Episode",
+            borderColor: "rgba(43, 68, 179,1)",
+            backgroundColor: "rgba(0,0,0,0)",
+            pointBackgroundColor: "rgba(0,0,0,0)",
+            data: [],
+            tension: 0.5,
+            borderWidth: 2,
+            pointRadius: 0,
+          },
+        ],
+      },
+      chartDataActions: {
+        labels: [],
+        datasets: [
+          {
+            label: "Average of Actions in one episode",
+            borderColor: "rgba(43, 68, 179,1)",
+            backgroundColor: "rgba(0,0,0,0)",
+            pointBackgroundColor: "rgba(0,0,0,0)",
+            data: [],
+            tension: 0.5,
+            borderWidth: 2,
+            pointRadius: 0,
+          },
+          {
+            label: "Total actions in one episode",
+            borderColor: "rgba(43, 68, 179,1)",
+            backgroundColor: "rgba(0,0,0,0)",
+            pointBackgroundColor: "rgba(0,0,0,0)",
+            data: [],
+            tension: 0.5,
+            borderWidth: 2,
+            pointRadius: 0,
+          },
+        ],
+      },
     };
   },
   computed: {
@@ -134,74 +268,23 @@ export default {
       }
       store.dispatch("actionUpdateQ", this.Q_VALUES);
     },
-    // //Find index of max value item in an array
-    // argMax: function (array) {
-    //   return array
-    //     .map((x, i) => [x, i])
-    //     .reduce((r, a) => (a[0] > r[0] ? a : r))[1];
-    // },
-    // //Check if state is terminal or not.
-    // //This means that if you hit the wall then it's terminal state
-    // isTerminalState: function (row_index, col_index) {
-    //   /**
-    //    * TODO: Change prize value dynamically
-    //    */
-    //   if (this.getMatrix[row_index][col_index].prize === 3) {
-    //     return false;
-    //   } else {
-    //     return true;
-    //   }
-    // },
-    // getStartLocation: function () {
-    //   //pick start row & col index
-    //   let current_row = Math.floor(Math.random() * this.getMatrix.length);
-    //   let current_col = Math.floor(Math.random() * this.getMatrix.length);
-    //   //Pick a location until we find a correct one
-    //   while (this.isTerminalState(current_row, current_col)) {
-    //     current_row = Math.floor(Math.random() * this.getMatrix.length);
-    //     current_col = Math.floor(Math.random() * this.getMatrix.length);
-    //   }
-    //   return [current_row, current_col];
-    // },
-    // //Robot picks a new action
-    // getNextAction: function (row_index, col_index, epsilon) {
-    //   if (Math.random() < epsilon) {
-    //     return this.argMax(this.Q_VALUES[row_index][col_index]);
-    //   } else {
-    //     return Math.floor(Math.random() * 4);
-    //   }
-    // },
-    // //Select which way robot is goin to go
-    // getNextLocation: function (row_index, col_index, action_index) {
-    //   let new_row_index = row_index;
-    //   let new_col_index = col_index;
-
-    //   if (this.actions[action_index] === "UP" && row_index > 0) {
-    //     new_row_index -= 1;
-    //   } else if (
-    //     this.actions[action_index] === "RIGHT" &&
-    //     col_index < this.getMatrix.length - 1
-    //   ) {
-    //     new_col_index += 1;
-    //   } else if (
-    //     this.actions[action_index] === "DOWN" &&
-    //     row_index < this.getMatrix.length - 1
-    //   ) {
-    //     new_row_index += 1;
-    //   } else if (this.actions[action_index] === "LEFT" && col_index > 0) {
-    //     new_col_index -= 1;
-    //   }
-    //   return [new_row_index, new_col_index];
-    // },
     stopWorker: function () {
       this.isTrainingStarted = false;
     },
     startWorker: function () {
       this.isTrainingStarted = true;
-      this.startTraining();
+      //this.startTraining();
+      let self = this;
+      setTimeout(() => self.startTraining(), 100);
     },
     timer: function (ms) {
       return new Promise((res) => setTimeout(res, ms));
+    },
+    avg: function (array) {
+      return array.reduce((a, b) => a + b, 0) / array.length;
+    },
+    sum: function (array) {
+      return array.reduce((a, b) => a + b, 0);
     },
     /*eslint-disable */
     startTraining: async function () {
@@ -209,52 +292,71 @@ export default {
       invokeStoreValues();
       const discountFactor = 0.9;
       const learningRate = 0.9;
+      let cumulative = 0;
+      let rewardsArr = [];
+      let actionsArr = [];
+      let totalActionsArr = [];
 
       for (let i = 0; i < this.loopCount; i++) {
         if (!this.isTrainingStarted) {
           break;
         }
-        let [rowIndex, colIndex] = getStartLocation();
+        let [rowIndex, colIndex] = pickStartLocation();
+        totalActionsArr = [];
 
         while (!isTerminalState(rowIndex, colIndex)) {
-          let actionIndex = getNextAction(
+          let actionIndex = pickNextAction(
             rowIndex,
             colIndex,
             this.epsilonModel
           );
+          actionsArr.push(actionIndex);
+          totalActionsArr.push(actionIndex);
           let oldRow = rowIndex;
           let oldCol = colIndex;
-          let nextLocation = getNextLocation(rowIndex, colIndex, actionIndex);
+          let nextLocation = pickNextLocation(rowIndex, colIndex, actionIndex);
           rowIndex = nextLocation[0];
           colIndex = nextLocation[1];
 
           let reward = this.getMatrix[rowIndex][colIndex].prize;
+          rewardsArr.push(reward);
           let oldQValue = this.Q_VALUES[oldRow][oldCol][actionIndex];
           /**
            * Q Learning Formula
            * https://wikimedia.org/api/rest_v1/media/math/render/svg/678cb558a9d59c33ef4810c9618baf34a9577686
            */
-          let tempDiff =
+          let temporalDifference =
             reward +
             discountFactor * Math.max(...this.Q_VALUES[rowIndex][colIndex]) -
             oldQValue;
-          let newQValue = learningRate * tempDiff + oldQValue;
+          let newQValue = learningRate * temporalDifference + oldQValue;
           // let newQValue =
           //   reward +
           //   discountFactor * Math.max(...this.Q_VALUES[rowIndex][colIndex]);
           this.Q_VALUES[oldRow][oldCol][actionIndex] = newQValue;
-
-          await this.timer(this.loopTimerValue);
-          //console.log("New Q Value", newQValue);
+          //await this.timer(this.loopTimerValue);
         }
+        //cumulative = cumulative + newQValue;
+        let rewardAvg = this.avg(rewardsArr);
+        let actionsAvg = this.avg(actionsArr);
+        this.chartDataAvg.labels[i] = i;
+        this.chartDataAvg.datasets[0].data.push(rewardAvg);
+        this.chartDataActions.labels[i] = i;
+        this.chartDataActions.datasets[0].data.push(actionsAvg);
+        this.chartDataActions.datasets[1].data.push(totalActionsArr.length);
+        //this.chartDataAvg.datasets[1].data.push(cumulative);
         this.episodeText = i;
       }
       console.log("Training Done !", this.Q_VALUES);
       this.isTrainingStarted = false;
       store.dispatch("actionUpdateQ", this.Q_VALUES);
+      console.log("Graph Data", this.chartDataAvg);
     },
     resetQMatrix: function () {
       this.createQMatrix();
+    },
+    scaleDiv: function (v) {
+      this.boxDimen = v;
     },
   },
 };

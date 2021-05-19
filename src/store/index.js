@@ -55,11 +55,28 @@ export default new Vuex.Store({
     getPathPrize(state) {
       return state.pathObject.prize;
     },
+    getRewardPrize(state) {
+      return state.rewardObject.prize;
+    },
     getActions(state) {
       return state.actions;
     },
   },
   mutations: {
+    createMatrixFromJSON(state, json) {
+      state.matrix = [];
+      const row_col = json.length;
+      for (let i = 0; i < row_col; i++) {
+        state.matrix[i] = new Array(row_col);
+        for (let j = 0; j < row_col; j++) {
+          if (json[i][j].id === -1) {
+            state.matrix[i][j] = state.pathObject;
+          } else {
+            state.matrix[i][j] = state.wallObject;
+          }
+        }
+      }
+    },
     createMatrix(state, row_col) {
       state.matrix = [];
       for (let i = 0; i < row_col; i++) {
@@ -115,6 +132,9 @@ export default new Vuex.Store({
     },
     actionCreateMatrix({ commit }, data) {
       commit("createMatrix", data);
+    },
+    actionCreateFromJSON({ commit }, data) {
+      commit("createMatrixFromJSON", data);
     },
   },
   modules: {},
