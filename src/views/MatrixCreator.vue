@@ -158,6 +158,16 @@ export default {
           filename: "Matrix 1",
           json: require("../assets/matrix1.json"),
         },
+        {
+          id: 2,
+          filename: "Matrix 2",
+          json: require("../assets/matrix2.json"),
+        },
+        {
+          id: 3,
+          filename: "Matrix 3",
+          json: require("../assets/matrix3.json"),
+        },
       ],
       wallPrizeModel: -100,
       pathPrizeModel: -1,
